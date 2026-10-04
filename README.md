@@ -487,6 +487,6 @@ to:
 
 Autonomous Systems
 
-One architecture.
+
 
 Computer Science — connected.
