@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CS Architecture — app
 
-## Getting Started
-
-First, run the development server:
+The interactive map of Computer Science described in the [project README](../README.md).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev     # http://localhost:3000
+npm run build   # production build (all pages are prerendered)
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Expand / collapse** any concept to see what it is made of. Wide levels are packed into a grid so they stay readable.
+- **Select** a concept to open its details: breadcrumb, explanation, examples, what it is made of, *what is underneath it* and *what depends on it*. Related concepts are highlighted on the canvas and their connections drawn.
+- **Connections** toggle shows every cross-domain dependency between visible concepts.
+- **Search** (`/`) jumps to any concept and expands the path to it.
+- **Follow the Computation** journeys trace a real operation step by step (`←` / `→` to step, `Esc` to exit):
+  - running `print("Hello, World!")`, opening a website, clicking a mouse, generating an LLM token, a robot seeing an object.
+- **Domain pages** (`/hardware`, `/software`, `/computation`, …) explore one domain, with a readable outline of every concept and the domains it connects to.
+- **Shareable links**: `/?node=cpu` opens a concept, `/?journey=hello-world` starts a journey.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+```
+app/
+  page.tsx              home: hero, full explorer, domain cards
+  [domain]/page.tsx     one page per top-level domain (statically generated)
+components/
+  SiteHeader.tsx
+  architecture/
+    ArchitectureExplorer.tsx   state: expansion, selection, journeys, camera
+    ArchitectureCanvas.tsx     React Flow rendering + camera movement
+    ArchitectureNode.tsx       concept card
+    ArchitectureFrame.tsx      box around grid-wrapped children
+    NodeDetailsPanel.tsx  JourneyPanel.tsx  OverviewPanel.tsx
+    SearchBox.tsx  NodeChip.tsx  HomeExplorer.tsx
+data/
+  nodes.ts              root node + aggregation
+  nodes/                concepts by domain: hardware, software, theory,
+                        connected (networks, data, distributed, security),
+                        intelligence (AI, robotics, emerging)
+  relationships.ts      containment (derived) + cross-domain links
+  journeys.ts           Follow the Computation paths
+lib/
+  graph.ts              lookups, search, validation
+  layout.ts             dagre tree layout with grid wrapping
+  categories.ts         per-domain icon and colours
+types/architecture.ts
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Adding to the architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Add a node to the right file in `data/nodes/`, with `parent` set to the concept that contains it. Containment edges are derived from `parent`.
+2. Add cross-domain links in `data/relationships.ts` with `link(source, type, target, label)`. Each link reads as a sentence: *"CPU implements Instruction Set Architecture"*.
+3. Journeys in `data/journeys.ts` reference nodes by id.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`validateArchitecture()` in `lib/graph.ts` reports duplicate ids and references to missing nodes.
