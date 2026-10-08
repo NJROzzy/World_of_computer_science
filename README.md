@@ -1,6 +1,6 @@
 https://world-of-computer-science.vercel.app 
 
-🧠 CS Architecture
+🧠 CS Architecture and beyond
 
 Explore Computer Science from transistors to intelligent systems.
 
